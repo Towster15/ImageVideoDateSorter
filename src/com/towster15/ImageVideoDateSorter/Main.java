@@ -66,6 +66,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         LOGGER.addHandler(FH);
         final Font FONT = new Font("Tahoma", Font.PLAIN, 14);
         final Font TITLEFONT = new Font("Tahoma", Font.BOLD, 16);
+        final Font STATUSFONT = new Font("Tahoma", Font.PLAIN, 12);
 
         JLabel titleLabel = new JLabel("Image Sorter thing");
         titleLabel.setFont(TITLEFONT);
@@ -146,8 +147,11 @@ public class Main extends JFrame implements ActionListener, ItemListener {
 
         JSeparator sep3 = new JSeparator(SwingConstants.HORIZONTAL);
 
+        JLabel statusLabel = new JLabel("Status:");
+        statusLabel.setFont(FONT);
+
         // Show the user why they can't start sorting yet
-        showSortingDisabledReasonLabel.setFont(FONT);
+        showSortingDisabledReasonLabel.setFont(STATUSFONT);
 
         // Start sorting button
         startSortingButton = new JButton("Start");
@@ -193,6 +197,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                                 )
                                 .addComponent(exitAfterSortCheckBox)
                                 .addComponent(sep3, 200, 275, 275)
+                                .addComponent(statusLabel)
                                 .addComponent(showSortingDisabledReasonLabel)
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(startSortingButton, 50, 75, 100)
@@ -226,6 +231,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                         )
                         .addComponent(exitAfterSortCheckBox)
                         .addComponent(sep3)
+                        .addComponent(statusLabel)
                         .addComponent(showSortingDisabledReasonLabel)
                         .addGroup(layout.createParallelGroup()
                                 .addComponent(startSortingButton)
@@ -345,7 +351,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
     private void checkReadyToSort() {
         if (sourceDir.exists() && destinationDir.exists() && (sortImages || moveVideos)) {
             startSortingButton.setEnabled(true);
-            showSortingDisabledReasonLabel.setText(" ");
+            showSortingDisabledReasonLabel.setText("Ready.");
         } else if (sourceDir.exists() && destinationDir.exists()) {
             startSortingButton.setEnabled(false);
             showSortingDisabledReasonLabel.setText(
