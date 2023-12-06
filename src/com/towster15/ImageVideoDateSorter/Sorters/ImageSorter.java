@@ -9,6 +9,8 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.logging.Logger;
 
 public class ImageSorter extends Sorter {
     private final Logger LOGGER;
+    private final boolean separateBroken;
     private final boolean OSCreateDateSort;
     private final HashMap<String, String> datedImages = new HashMap<>();
 
@@ -24,6 +27,8 @@ public class ImageSorter extends Sorter {
      * @param log the logger to report events to
      * @param sourceDir source directory file
      * @param destinationDir destination directory file
+     * @param separateBroken boolean to enable or disable separating
+     *                       broken images from the rest
      * @param daySort boolean to enable or disable sorting by days
      * @param OSCreateDateSort boolean to enable or disable using the
      *                         OS's creation date, as a fallback opt.
@@ -32,10 +37,12 @@ public class ImageSorter extends Sorter {
             Logger log,
             File sourceDir,
             File destinationDir,
+            boolean separateBroken,
             boolean daySort,
             boolean OSCreateDateSort) {
         super(sourceDir, destinationDir, daySort);
         LOGGER = log;
+        this.separateBroken = separateBroken;
         this.OSCreateDateSort = OSCreateDateSort;
     }
 
@@ -45,6 +52,10 @@ public class ImageSorter extends Sorter {
      */
     public void sortImages() {
         List<File> images = listImageFiles(sourceDir);
+        File file = new File(destinationDir + "/Broken Images");
+        if (!file.mkdirs()) {
+            LOGGER.log(Level.WARNING, "Failed to make broken images folder, expect more errors!");
+        }
         for (File image : images) {
             String date = getDateFromEXIF(image);
             if (date != null && !date.equals("null")) {
@@ -62,6 +73,12 @@ public class ImageSorter extends Sorter {
                             date), image);
                 } catch (IOException ioEx) {
                     LOGGER.log(Level.WARNING, "Failed to make date folder, IOException", date);
+                }
+            } else if (separateBroken) {
+                try {
+                    moveBroken(image.toPath());
+                } catch (IOException ioEx) {
+                    LOGGER.log(Level.WARNING, "Failed to make folder, IOException", date);
                 }
             } else {
                 LOGGER.log(Level.WARNING, "File has no date data", image);
@@ -216,10 +233,13 @@ public class ImageSorter extends Sorter {
             }
         } catch (IOException IOex) {
             // Failed to read image data
-            LOGGER.log(Level.WARNING, "IOException reading metadata", IOex);
+            LOGGER.log(Level.WARNING, "IOException reading metadata: " + file.getName(), IOex);
         } catch (ImageReadException imReadEx) {
             // Failed to read image metadata
-            LOGGER.log(Level.WARNING, "Image read exception", imReadEx);
+            LOGGER.log(Level.WARNING, "Image read exception: " + file.getName());
+            return null;
+        } catch (IllegalArgumentException argEx) {
+            LOGGER.log(Level.INFO, "Apache doesn't support image ext, using fallback");
         }
         if (OSCreateDateSort) {
             try {
@@ -230,6 +250,49 @@ public class ImageSorter extends Sorter {
             }
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Moves the provided file to the broken images folder.
+     *
+     * @param filePath the path of the image to be moved
+     */
+    protected void moveBroken(Path filePath) throws IOException {
+        try {
+            Files.move(
+                    filePath,
+                    Path.of(
+                            destinationDir.getAbsolutePath(), "Broken Images",
+                            filePath.getFileName().toString()
+                    )
+            );
+        } catch (FileAlreadyExistsException e) {
+            boolean successful_move = false;
+            int duplicate_num = 1;
+
+            int i = filePath.toString().lastIndexOf('.');
+            String extension = filePath.toString().substring(i);
+            int b = filePath.getFileName().toString().length();
+
+            while (!successful_move) {
+                try {
+                    successful_move = true;
+                    Files.move(
+                            filePath,
+                            Path.of(
+                                    destinationDir.getAbsolutePath(),
+                                    "Broken Images",
+                                    filePath.getFileName().toString().substring(
+                                            0, b - extension.length()
+                                    ) + String.format("(%d)%s", duplicate_num, extension)
+                            )
+                    );
+                } catch (FileAlreadyExistsException ex) {
+                    successful_move = false;
+                    duplicate_num++;
+                }
+            }
         }
     }
 }

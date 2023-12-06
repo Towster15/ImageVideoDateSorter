@@ -25,6 +25,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
     private final static String START = "3";
     private final static String EXIT = "4";
     private final JCheckBox sortImageCheckBox;
+    private final JCheckBox separateBrokenImagesCheckBox;
     private final JCheckBox moveVideoCheckBox;
     private final JCheckBox sortVideoCheckBox;
     private final JCheckBox daySortCheckBox;
@@ -39,6 +40,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
     private File sourceDir = new File("");
     private File destinationDir = new File("");
     private boolean sortImages = true;
+    private boolean separateBrokenImages = false;
     private boolean moveVideos = false;
     private boolean sortVideos = false;
     private boolean daySort = false;
@@ -97,6 +99,13 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         sortImageCheckBox.doClick();
         sortImageCheckBox.setFont(FONT);
         sortImageCheckBox.addItemListener(this);
+
+        // Separate broken images checkbox
+        separateBrokenImagesCheckBox = new JCheckBox("Separate Broken Images");
+        separateBrokenImagesCheckBox.setToolTipText("Images with unreadable data (likely broken) " +
+                " will be moved to a separate folder.");
+        separateBrokenImagesCheckBox.setFont(FONT);
+        separateBrokenImagesCheckBox.addItemListener(this);
 
         // Move videos to videos folder checkbox
         moveVideoCheckBox = new JCheckBox("Move Videos");
@@ -169,7 +178,10 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                                 .addComponent(destinationDirectoryLabel)
                                 .addComponent(destinationDirLabel)
                                 .addComponent(sep1, 200, 275, 275)
-                                .addComponent(sortImageCheckBox)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(sortImageCheckBox)
+                                        .addComponent(separateBrokenImagesCheckBox)
+                                )
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(moveVideoCheckBox)
                                         .addComponent(sortVideoCheckBox)
@@ -199,7 +211,10 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                         .addComponent(destinationDirectoryLabel)
                         .addComponent(destinationDirLabel)
                         .addComponent(sep1)
-                        .addComponent(sortImageCheckBox)
+                        .addGroup(layout.createParallelGroup()
+                                .addComponent(sortImageCheckBox)
+                                .addComponent(separateBrokenImagesCheckBox)
+                        )
                         .addGroup(layout.createParallelGroup()
                                 .addComponent(moveVideoCheckBox)
                                 .addComponent(sortVideoCheckBox)
@@ -249,7 +264,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
 
                 if (sortImages) {
                     ImageSorter imgSort = new ImageSorter(LOGGER, sourceDir, destinationDir,
-                            daySort, OSCreateDateSort);
+                            separateBrokenImages, daySort, OSCreateDateSort);
                     imgSort.sortImages();
                 }
                 if (moveVideos) {
@@ -286,6 +301,8 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         if (e.getItemSelectable() == sortImageCheckBox) {
             sortImages = !(e.getStateChange() == ItemEvent.DESELECTED);
             checkReadyToSort();
+        } else if (e.getItemSelectable() == separateBrokenImagesCheckBox) {
+            separateBrokenImages = !(e.getStateChange() == ItemEvent.DESELECTED);
         } else if (e.getItemSelectable() == moveVideoCheckBox) {
             moveVideos = !(e.getStateChange() == ItemEvent.DESELECTED);
             checkReadyToSort();
