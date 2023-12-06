@@ -158,7 +158,7 @@ public class Sorter {
             int duplicate_num = 1;
 
             int i = filePath.toString().lastIndexOf('.');
-            String extension = filePath.toString().substring(i+1);
+            String extension = filePath.toString().substring(i);
             int b = filePath.getFileName().toString().length();
 
             while (!successful_move) {
@@ -172,7 +172,7 @@ public class Sorter {
                                         year, month, day,
                                         filePath.getFileName().toString().substring(
                                                 0, b - extension.length()
-                                        ) + String.format("(%d%s)", duplicate_num, extension)
+                                        ) + String.format("(%d)%s", duplicate_num, extension)
                                 )
                         );
                     } else {
@@ -183,7 +183,7 @@ public class Sorter {
                                         year, month,
                                         filePath.getFileName().toString().substring(
                                                 0, b - extension.length()
-                                        ) + String.format("(%d%s)", duplicate_num, extension)
+                                        ) + String.format("(%d)%s", duplicate_num, extension)
                                 )
                         );
                     }

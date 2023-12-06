@@ -149,6 +149,11 @@ public class VideoSorter extends Sorter {
             } catch (FileAlreadyExistsException e) {
                 boolean successful_move = false;
                 int duplicate_num = 1;
+
+                int i = filePath.toString().lastIndexOf('.');
+                String extension = filePath.toString().substring(i);
+                int b = filePath.getFileName().toString().length();
+
                 while (!successful_move) {
                     try {
                         successful_move = true;
@@ -156,8 +161,9 @@ public class VideoSorter extends Sorter {
                                 filePath,
                                 Path.of(
                                         destinationDir.getAbsolutePath(), "Videos",
-                                        filePath.getFileName().toString()
-                                                + String.format("(%d)", duplicate_num)
+                                        filePath.getFileName().toString().substring(
+                                                0, b - extension.length()
+                                        ) + String.format("(%d)%s", duplicate_num, extension)
                                 )
                         );
                     } catch (FileAlreadyExistsException ex) {
