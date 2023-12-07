@@ -36,13 +36,12 @@ but generally things have been very successful.
 
 ### Speed of file moving
 
-Currently, the program is single threaded. That's not ideal for a
-plethora of reasons, including:
-- The UI is unresponsive during the sort
-- It could be faster
-  - It's unlikely that any speed improvements will be noticed if moving to and from the same 
-    hard drive (untested on SSDs)
-  - There's room for improvement when moving between separate drives
+The program used to be single threaded, but now it uses multiple. I'm almost certain that my 
+current implementation isn't perfect by any stretch, as the GUI is still unresponsive during the 
+sort. I'll fix it one day, maybe.
+
+Generally it feels like the sort is a tad faster, however, I'm still being limited by my drives 
+hitting 100% utilisation rather than the program.
 
 ### Failing to move AAE files
 
@@ -56,10 +55,8 @@ won't be moved either.
 
 ## TODOs
 
-1. Implement multithreading to improve the speed of image moving
-2. Implement a way for the user to be notified of broken images or AAE files that either
+1. Implement a way for the user to be notified of broken images or AAE files that either
    couldn't be moved or are broken
-3. Fix the odd AAE handling
 
 ## Dependencies
 
