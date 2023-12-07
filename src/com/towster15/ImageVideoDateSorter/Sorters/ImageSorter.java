@@ -12,6 +12,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -65,7 +66,7 @@ public class ImageSorter extends Sorter {
         for (File image : images) {
             String date = getDateFromEXIF(image);
             if (date != null && !date.equals("null")) {
-                datedImages.put(image.getName(),date);
+                datedImages.put(image.getName(), date);
                 if (!checkDateFolderExists(date)) {
                     if (!makeDateFolder(date)) {
                         LOGGER.log(Level.WARNING, "Failed to make date folder", date);
@@ -81,6 +82,7 @@ public class ImageSorter extends Sorter {
                     LOGGER.log(Level.WARNING, "Failed to make date folder, IOException", date);
                 }
             } else if (separateBroken) {
+                datedImages.put(image.getName(), "null");
                 try {
                     moveToFolder(image.toPath(), "Broken Images");
                 } catch (IOException ioEx) {
@@ -103,9 +105,17 @@ public class ImageSorter extends Sorter {
 
             try {
                 if (datedImages.containsKey(jpgKey)) {
-                    moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                    if (Objects.equals(datedImages.get(jpgKey), "null")) {
+                        moveToFolder(aae.toPath(), "Broken Images");
+                    } else {
+                        moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                    }
                 } else if (datedImages.containsKey(pngKey)) {
-                    moveDatedFile(aae.toPath(), datedImages.get(pngKey));
+                    if (Objects.equals(datedImages.get(pngKey), "null")) {
+                        moveToFolder(aae.toPath(), "Broken Images");
+                    } else {
+                        moveDatedFile(aae.toPath(), datedImages.get(pngKey));
+                    }
                 } else {
                     moveToFolder(aae.toPath(), "Loose AAEs");
                 }
