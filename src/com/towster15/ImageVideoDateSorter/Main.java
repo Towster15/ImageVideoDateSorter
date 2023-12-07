@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -285,7 +286,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                                 "Finished in %s seconds!",
                                 humanReadableDuration(Duration.between(startTime, endTime))
                         ),
-                        "Success!",JOptionPane.INFORMATION_MESSAGE
+                        "Success!", JOptionPane.INFORMATION_MESSAGE
                 );
                 if (exitAfterSort) {
                     dispose();
@@ -385,6 +386,23 @@ public class Main extends JFrame implements ActionListener, ItemListener {
      * Creates a new JFrame window which will handle everything.
      */
     public static void main(String[] args) {
+        try {
+            // Set cross-platform Java L&F (also called "Metal")
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (UnsupportedLookAndFeelException e) {
+            // handle exception
+            LOGGER.log(Level.INFO, "Failed to get system look and feel: unsupported");
+        } catch (ClassNotFoundException e) {
+            // handle exception
+            LOGGER.log(Level.INFO, "Failed to get system look and feel: class not found");
+        } catch (InstantiationException e) {
+            // handle exception
+            LOGGER.log(Level.INFO, "Failed to get system look and feel: instantiation ex");
+        } catch (IllegalAccessException e) {
+            // handle exception
+            LOGGER.log(Level.INFO, "Failed to get system look and feel: illegal argument");
+        }
+
         // We use this to ensure that the GUI and any processing are
         // both done on separate threads, ensuring the GUI stays
         // responsive whilst any processing is going on in the
