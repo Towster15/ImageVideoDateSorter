@@ -46,6 +46,10 @@ public class ImageSorter extends Sorter {
         this.OSCreateDateSort = OSCreateDateSort;
     }
 
+    public void run() {
+        sortImages();
+    }
+
     /**
      * Sorts all the images in the source directory into dated folders
      * in the destination directory.

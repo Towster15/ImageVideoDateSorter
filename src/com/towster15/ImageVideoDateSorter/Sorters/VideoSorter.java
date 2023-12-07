@@ -33,6 +33,10 @@ public class VideoSorter extends Sorter {
         this.sortVideos = sortVideos;
     }
 
+    public void run() {
+        sortVideos();
+    }
+
     /**
      * Sorts all the videos in the source directory into either dated
      * folders or a dedicated videos folder, within the destination

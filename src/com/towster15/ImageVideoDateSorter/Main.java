@@ -33,6 +33,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
     private final JCheckBox OSCreateDateSortCheckBox;
     private final JCheckBox exitAfterSortCheckBox;
     private final JButton startSortingButton;
+    private final JButton exitButton;
     private final JLabel sourceDirLabel = new JLabel("No folder selected!");
     private final JLabel destinationDirLabel = new JLabel("No folder selected!");
     private final JLabel showSortingDisabledReasonLabel = new JLabel(
@@ -162,7 +163,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         startSortingButton.setEnabled(false);
 
         // Exit button
-        final JButton exitButton = new JButton("Exit");
+        exitButton = new JButton("Exit");
         exitButton.setFont(FONT);
         exitButton.setActionCommand(EXIT);
         exitButton.addActionListener(this);
@@ -268,17 +269,38 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                 break;
             case START:
                 Instant startTime = Instant.now();
+                ImageSorter imgSort = null;
+                VideoSorter vidSort = null;
+                showSortingDisabledReasonLabel.setText("Sorting in progress... please wait.");
+                exitButton.setEnabled(false);
 
                 if (sortImages) {
-                    ImageSorter imgSort = new ImageSorter(LOGGER, sourceDir, destinationDir,
+                    imgSort = new ImageSorter(LOGGER, sourceDir, destinationDir,
                             separateBrokenImages, daySort, OSCreateDateSort);
-                    imgSort.sortImages();
+                    imgSort.start();
                 }
                 if (moveVideos) {
-                    VideoSorter vidSort = new VideoSorter(LOGGER, sourceDir, destinationDir,
+                    vidSort = new VideoSorter(LOGGER, sourceDir, destinationDir,
                             daySort, sortVideos);
-                    vidSort.sortVideos();
+                    vidSort.start();
                 }
+
+                if (imgSort != null) {
+                    try {
+                        imgSort.join();
+                    } catch (InterruptedException intEx) {
+                        LOGGER.log(Level.WARNING, "Main thread interrupted for img");
+                    }
+                }
+                if (vidSort != null) {
+                    try {
+                        vidSort.join();
+                    } catch (InterruptedException intEx) {
+                        LOGGER.log(Level.WARNING, "Main thread interrupted for vid");
+                    }
+                }
+
+                exitButton.setEnabled(true);
 
                 Instant endTime = Instant.now();
                 JOptionPane.showMessageDialog(
@@ -308,6 +330,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         if (e.getItemSelectable() == sortImageCheckBox) {
             sortImages = !(e.getStateChange() == ItemEvent.DESELECTED);
             checkReadyToSort();
+            separateBrokenImagesCheckBox.setEnabled(sortImages);
         } else if (e.getItemSelectable() == separateBrokenImagesCheckBox) {
             separateBrokenImages = !(e.getStateChange() == ItemEvent.DESELECTED);
         } else if (e.getItemSelectable() == moveVideoCheckBox) {

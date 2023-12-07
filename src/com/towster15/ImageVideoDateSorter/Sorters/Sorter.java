@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Sorter {
+public class Sorter extends Thread {
     protected final File sourceDir;
     protected final File destinationDir;
     private final HashMap<String, String> monthMap = new HashMap<>();
