@@ -9,8 +9,6 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,9 +54,13 @@ public class ImageSorter extends Sorter {
      */
     public void sortImages() {
         List<File> images = listImageFiles(sourceDir);
-        File file = new File(destinationDir + "/Broken Images");
-        if (!file.mkdirs()) {
+        File brokenImages = new File(destinationDir + "/Broken Images");
+        if (!brokenImages.mkdirs()) {
             LOGGER.log(Level.WARNING, "Failed to make broken images folder, expect more errors!");
+        }
+        File looseAAEs = new File(destinationDir + "/Loose AAEs");
+        if (!looseAAEs.mkdirs()) {
+            LOGGER.log(Level.WARNING, "Failed to make loose AAEs folder, expect more errors!");
         }
         for (File image : images) {
             String date = getDateFromEXIF(image);
@@ -80,7 +82,7 @@ public class ImageSorter extends Sorter {
                 }
             } else if (separateBroken) {
                 try {
-                    moveBroken(image.toPath());
+                    moveToFolder(image.toPath(), "Broken Images");
                 } catch (IOException ioEx) {
                     LOGGER.log(Level.WARNING, "Failed to make folder, IOException", date);
                 }
@@ -243,49 +245,6 @@ public class ImageSorter extends Sorter {
             }
         } else {
             return null;
-        }
-    }
-
-    /**
-     * Moves the provided file to the broken images folder.
-     *
-     * @param filePath the path of the image to be moved
-     */
-    protected void moveBroken(Path filePath) throws IOException {
-        try {
-            Files.move(
-                    filePath,
-                    Path.of(
-                            destinationDir.getAbsolutePath(), "Broken Images",
-                            filePath.getFileName().toString()
-                    )
-            );
-        } catch (FileAlreadyExistsException e) {
-            boolean successful_move = false;
-            int duplicate_num = 1;
-
-            int i = filePath.toString().lastIndexOf('.');
-            String extension = filePath.toString().substring(i);
-            int b = filePath.getFileName().toString().length();
-
-            while (!successful_move) {
-                try {
-                    successful_move = true;
-                    Files.move(
-                            filePath,
-                            Path.of(
-                                    destinationDir.getAbsolutePath(),
-                                    "Broken Images",
-                                    filePath.getFileName().toString().substring(
-                                            0, b - extension.length()
-                                    ) + String.format("(%d)%s", duplicate_num, extension)
-                            )
-                    );
-                } catch (FileAlreadyExistsException ex) {
-                    successful_move = false;
-                    duplicate_num++;
-                }
-            }
         }
     }
 }
