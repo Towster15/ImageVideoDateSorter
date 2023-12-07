@@ -18,9 +18,9 @@ public class Sorter extends Thread {
     protected final boolean daySort;
 
     /**
-     * @param sourceDir source directory File
+     * @param sourceDir      source directory File
      * @param destinationDir destination directory File
-     * @param daySort boolean to enable or disable sorting by days
+     * @param daySort        boolean to enable or disable sorting by days
      */
     public Sorter(File sourceDir, File destinationDir, boolean daySort) {
         monthMap.put("01", "01 January");
@@ -70,7 +70,7 @@ public class Sorter extends Thread {
      * @param file the date the file was created
      * @return a string of the creation date in the format YYYY-MM-DD
      */
-    protected static String getDate(File file) throws IOException{
+    protected static String getDate(File file) throws IOException {
         return Files.readAttributes(
                 Paths.get(file.getAbsolutePath()),
                 BasicFileAttributes.class
@@ -128,7 +128,7 @@ public class Sorter extends Thread {
      * Moves the provided file to the corresponding date folder.
      *
      * @param filePath the path of the image to be moved
-     * @param date the date the image was taken/created
+     * @param date     the date the image was taken/created
      */
     protected void moveDatedFile(Path filePath, String date) throws IOException {
         String year = date.substring(0, 4);
@@ -195,6 +195,12 @@ public class Sorter extends Thread {
         }
     }
 
+    /**
+     * Moves the provided file to the provided folder.
+     *
+     * @param filePath   the path of the image to be moved
+     * @param folderName the date the image was taken/created
+     */
     protected void moveToFolder(Path filePath, String folderName) throws IOException {
         try {
             Files.move(

@@ -12,12 +12,12 @@ public class VideoSorter extends Sorter {
     private final boolean sortVideos;
 
     /**
-     * @param log the logger to report events to
-     * @param sourceDir source directory file
+     * @param log            the logger to report events to
+     * @param sourceDir      source directory file
      * @param destinationDir destination directory file
-     * @param daySort boolean to enable or disable sorting by days
-     * @param sortVideos boolean to enable or disable sorting videos
-     *                   by date
+     * @param daySort        boolean to enable or disable sorting by days
+     * @param sortVideos     boolean to enable or disable sorting videos
+     *                       by date
      */
     public VideoSorter(
             Logger log,
@@ -30,6 +30,10 @@ public class VideoSorter extends Sorter {
         this.sortVideos = sortVideos;
     }
 
+    /**
+     * Run method for when an instance of this class, as a thread, is
+     * called.
+     */
     public void run() {
         sortVideos();
     }

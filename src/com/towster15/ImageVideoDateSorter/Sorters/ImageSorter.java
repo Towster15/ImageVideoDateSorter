@@ -23,12 +23,12 @@ public class ImageSorter extends Sorter {
     private final HashMap<String, String> datedImages = new HashMap<>();
 
     /**
-     * @param log the logger to report events to
-     * @param sourceDir source directory file
-     * @param destinationDir destination directory file
-     * @param separateBroken boolean to enable or disable separating
-     *                       broken images from the rest
-     * @param daySort boolean to enable or disable sorting by days
+     * @param log              the logger to report events to
+     * @param sourceDir        source directory file
+     * @param destinationDir   destination directory file
+     * @param separateBroken   boolean to enable or disable separating
+     *                         broken images from the rest
+     * @param daySort          boolean to enable or disable sorting by days
      * @param OSCreateDateSort boolean to enable or disable using the
      *                         OS's creation date, as a fallback opt.
      */
@@ -45,6 +45,10 @@ public class ImageSorter extends Sorter {
         this.OSCreateDateSort = OSCreateDateSort;
     }
 
+    /**
+     * Run method for when an instance of this class, as a thread, is
+     * called.
+     */
     public void run() {
         sortImages();
     }
@@ -100,8 +104,8 @@ public class ImageSorter extends Sorter {
         List<File> aaeList = listAAEFiles(sourceDir);
         for (File aae : aaeList) {
             int fnlen = aae.getName().length();
-            String pngKey = aae.getName().substring(0, fnlen-4) + ".JPG";
-            String jpgKey = aae.getName().substring(0, fnlen-4) + ".PNG";
+            String pngKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
+            String jpgKey = aae.getName().substring(0, fnlen - 4) + ".PNG";
 
             try {
                 if (datedImages.containsKey(jpgKey)) {
@@ -219,8 +223,7 @@ public class ImageSorter extends Sorter {
     private String getDateFromEXIF(final File file) {
         try {
             final ImageMetadata metadata = Imaging.getMetadata(file);
-            if (metadata instanceof JpegImageMetadata) {
-                final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+            if (metadata instanceof JpegImageMetadata jpegMetadata) {
                 if (jpegMetadata.getExif().getFieldValue(
                         ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL
                 ) != null) {
