@@ -71,7 +71,7 @@ public class ImageSorter extends Sorter {
                     }
                 }
                 try {
-                    moveFile(image.toPath(), date);
+                    moveDatedFile(image.toPath(), date);
                 } catch (FileAlreadyExistsException fEx) {
                     LOGGER.log(Level.WARNING, String.format("File already exists in %s folder",
                             date), image);
@@ -98,31 +98,20 @@ public class ImageSorter extends Sorter {
             int fnlen = aae.getName().length();
             String pngKey = aae.getName().substring(0, fnlen-4) + ".JPG";
             String jpgKey = aae.getName().substring(0, fnlen-4) + ".PNG";
-            if (datedImages.containsKey(jpgKey)) {
-                moveAAE(aae, jpgKey);
-            } else if (datedImages.containsKey(pngKey)) {
-                moveAAE(aae, pngKey);
-            }
-        }
-    }
 
-    /**
-     * Moves an AAE file to the relevant date folder by matching it to
-     * its accompanying image and using that image's date information.
-     *
-     * @param aae AAE file to move
-     * @param key the filename key to get the matching date for the
-     *            AAE file
-     */
-    private void moveAAE(File aae, String key) {
-        try {
-            moveFile(aae.toPath(), datedImages.get(key));
-        } catch (FileAlreadyExistsException fEx) {
-            LOGGER.log(Level.WARNING, String.format("File already exists in %s folder",
-                    datedImages.get(key)), aae);
-        } catch (IOException ioEx) {
-            LOGGER.log(Level.WARNING, "Failed to make date folder, IOException",
-                    datedImages.get(key));
+            try {
+                if (datedImages.containsKey(jpgKey)) {
+                    moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                } else if (datedImages.containsKey(pngKey)) {
+                    moveDatedFile(aae.toPath(), datedImages.get(pngKey));
+                } else {
+                    moveToFolder(aae.toPath(), "Loose AAEs");
+                }
+            } catch (FileAlreadyExistsException fEx) {
+                LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
+            } catch (IOException ioEx) {
+                LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
+            }
         }
     }
 

@@ -2,9 +2,6 @@ package com.towster15.ImageVideoDateSorter.Sorters;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -66,7 +63,11 @@ public class VideoSorter extends Sorter {
                 }
             }
             try {
-                moveVideo(video.toPath(), date);
+                if (sortVideos) {
+                    moveDatedFile(video.toPath(), date);
+                } else {
+                    moveToFolder(video.toPath(), "Videos");
+                }
             } catch (IOException ioEx) {
                 LOGGER.log(Level.WARNING, "Failed to make date folder, IOException", date);
                 LOGGER.log(Level.WARNING, "ex: ", ioEx.getMessage());
@@ -128,54 +129,5 @@ public class VideoSorter extends Sorter {
                 || fileName.endsWith(".nsv") || fileName.endsWith(".f4v")
                 || fileName.endsWith(".f4p") || fileName.endsWith(".f4a")
                 || fileName.endsWith(".f4b");
-    }
-
-    /**
-     * Checks to see if the file provided has any of the following
-     * extensions: {@code .jpg}, {@code .jpeg}, {@code .png},
-     * {@code .gif}, {@code .bmp}, {@code .heic} and {@code .tiff}.
-     *
-     * @param filePath the path of the file to move
-     * @param date the date the file was created
-     */
-    private void moveVideo(Path filePath, String date) throws IOException {
-        if (sortVideos) {
-            moveFile(filePath, date);
-        } else {
-            try {
-                Files.move(
-                        filePath,
-                        Path.of(
-                                destinationDir.getAbsolutePath(),
-                                "Videos", filePath.getFileName().toString()
-                        )
-                );
-            } catch (FileAlreadyExistsException e) {
-                boolean successful_move = false;
-                int duplicate_num = 1;
-
-                int i = filePath.toString().lastIndexOf('.');
-                String extension = filePath.toString().substring(i);
-                int b = filePath.getFileName().toString().length();
-
-                while (!successful_move) {
-                    try {
-                        successful_move = true;
-                        Files.move(
-                                filePath,
-                                Path.of(
-                                        destinationDir.getAbsolutePath(), "Videos",
-                                        filePath.getFileName().toString().substring(
-                                                0, b - extension.length()
-                                        ) + String.format("(%d)%s", duplicate_num, extension)
-                                )
-                        );
-                    } catch (FileAlreadyExistsException ex) {
-                        successful_move = false;
-                        duplicate_num++;
-                    }
-                }
-            }
-        }
     }
 }

@@ -130,7 +130,7 @@ public class Sorter extends Thread {
      * @param filePath the path of the image to be moved
      * @param date the date the image was taken/created
      */
-    protected void moveFile(Path filePath, String date) throws IOException {
+    protected void moveDatedFile(Path filePath, String date) throws IOException {
         String year = date.substring(0, 4);
         String month = monthMap.get(date.substring(5, 7));
         String day = date.substring(8, 10);
@@ -187,6 +187,44 @@ public class Sorter extends Thread {
                                 )
                         );
                     }
+                } catch (FileAlreadyExistsException ex) {
+                    successful_move = false;
+                    duplicate_num++;
+                }
+            }
+        }
+    }
+
+    protected void moveToFolder(Path filePath, String folderName) throws IOException {
+        try {
+            Files.move(
+                    filePath,
+                    Path.of(
+                            destinationDir.getAbsolutePath(), folderName,
+                            filePath.getFileName().toString()
+                    )
+            );
+        } catch (FileAlreadyExistsException e) {
+            boolean successful_move = false;
+            int duplicate_num = 1;
+
+            int i = filePath.toString().lastIndexOf('.');
+            String extension = filePath.toString().substring(i);
+            int b = filePath.getFileName().toString().length();
+
+            while (!successful_move) {
+                try {
+                    successful_move = true;
+                    Files.move(
+                            filePath,
+                            Path.of(
+                                    destinationDir.getAbsolutePath(),
+                                    folderName,
+                                    filePath.getFileName().toString().substring(
+                                            0, b - extension.length()
+                                    ) + String.format("(%d)%s", duplicate_num, extension)
+                            )
+                    );
                 } catch (FileAlreadyExistsException ex) {
                     successful_move = false;
                     duplicate_num++;
