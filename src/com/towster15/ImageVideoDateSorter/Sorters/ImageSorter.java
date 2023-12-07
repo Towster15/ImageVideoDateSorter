@@ -223,7 +223,8 @@ public class ImageSorter extends Sorter {
     private String getDateFromEXIF(final File file) {
         try {
             final ImageMetadata metadata = Imaging.getMetadata(file);
-            if (metadata instanceof JpegImageMetadata jpegMetadata) {
+            if (metadata instanceof JpegImageMetadata) {
+                final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
                 if (jpegMetadata.getExif().getFieldValue(
                         ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL
                 ) != null) {
