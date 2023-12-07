@@ -6,6 +6,7 @@ out/
 ImageVideoDateSorter.iml
 lib
 log.txt
+log.txt.lck
 
 ### Eclipse ###
 .apt_generated
