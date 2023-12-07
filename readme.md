@@ -43,7 +43,7 @@ sort. I'll fix it one day, maybe.
 Generally it feels like the sort is a tad faster, however, I'm still being limited by my drives 
 hitting 100% utilisation rather than the program.
 
-### Failing to move AAE files
+### Failing to move AAE files (I think this is resolved?)
 
 If your input image set contains multiple images with the same name
 that an AAE file could be matched with, the program seems to give up
