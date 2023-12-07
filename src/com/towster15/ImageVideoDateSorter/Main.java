@@ -301,6 +301,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                 }
 
                 exitButton.setEnabled(true);
+                showSortingDisabledReasonLabel.setText("Ready.");
 
                 Instant endTime = Instant.now();
                 JOptionPane.showMessageDialog(
