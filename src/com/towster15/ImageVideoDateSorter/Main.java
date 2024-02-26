@@ -286,7 +286,6 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
             case CANCEL:
                 sortCancelled = true;
                 worker.cancel(true);
-                // dispose();
                 break;
         }
     }
@@ -414,13 +413,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                 .toLowerCase();
     }
 
-    /**
-     * Main method to begin execution of the image conversion script.
-     * Creates a new JFrame window which will handle everything.
-     */
     public static void main(String[] args) {
         try {
-            // Set cross-platform Java L&F (also called "Metal")
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (UnsupportedLookAndFeelException e) {
             // handle exception
@@ -436,10 +430,6 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
             LOGGER.log(Level.INFO, "Failed to get system look and feel: illegal argument");
         }
 
-        // We use this to ensure that the GUI and any processing are
-        // both done on separate threads, ensuring the GUI stays
-        // responsive whilst any processing is going on in the
-        // background
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 new Main().setVisible(true);

@@ -9,11 +9,12 @@ import java.util.logging.Logger;
 
 public class VideoSorter extends Sorter {
     private final Logger LOGGER;
+    private final List<File> videos;
     private final boolean sortVideos;
 
     /**
      * @param log            the logger to report events to
-     * @param sourceDir      source directory file
+     * @param videoList      list of videos to sort
      * @param destinationDir destination directory file
      * @param daySort        boolean to enable or disable sorting by days
      * @param sortVideos     boolean to enable or disable sorting videos
@@ -21,12 +22,13 @@ public class VideoSorter extends Sorter {
      */
     public VideoSorter(
             Logger log,
-            File sourceDir,
+            List<File> videoList,
             File destinationDir,
             boolean daySort,
             boolean sortVideos) {
-        super(sourceDir, destinationDir, daySort);
+        super(destinationDir, daySort);
         LOGGER = log;
+        videos = videoList;
         this.sortVideos = sortVideos;
     }
 
@@ -44,7 +46,6 @@ public class VideoSorter extends Sorter {
      * directory.
      */
     public void sortVideos() {
-        List<File> videos = listVideoFiles(sourceDir);
         if (!sortVideos) {
             File file = new File(destinationDir + "/Videos");
             if (!file.mkdirs()) {
@@ -77,61 +78,5 @@ public class VideoSorter extends Sorter {
                 LOGGER.log(Level.WARNING, "ex: ", ioEx.getMessage());
             }
         }
-    }
-
-    /**
-     * Traverses through a folder and its sub-folders to find all
-     * image files and adds them to a list.
-     * <p>
-     * This uses the {@code checkImageFile} method to test whether
-     * each file is a valid image, as to not disturb other files in
-     * said folders.
-     *
-     * @param cwd the folder to scan, current working directory
-     * @return the list of all images found
-     */
-    private static List<File> listVideoFiles(File cwd) {
-        List<File> returnImages = new ArrayList<>();
-        List<File> thisFolderFileList = listAllFiles(cwd);
-        for (File file : thisFolderFileList) {
-            if (checkVideoFile(file)) {
-                returnImages.add(file);
-            } else if (file.isDirectory()) {
-                returnImages.addAll(listVideoFiles(file));
-            }
-        }
-        return returnImages;
-    }
-
-    /**
-     * Checks to see if the file provided has a video file extension.
-     *
-     * @param file the string of the path of the file to test
-     * @return returns true if the file given is a valid image,
-     * else returns false.
-     */
-    private static boolean checkVideoFile(File file) {
-        String fileName = file.toPath().getFileName().toString().toLowerCase();
-        if (fileName.startsWith(".")) {
-            return false;
-        }
-        return fileName.endsWith(".webm") || fileName.endsWith(".mkv")
-                || fileName.endsWith(".flv") || fileName.endsWith(".ogv")
-                || fileName.endsWith(".avi") || fileName.endsWith(".mts")
-                || fileName.endsWith(".m2ts") || fileName.endsWith(".ts")
-                || fileName.endsWith(".mov") || fileName.endsWith(".qt")
-                || fileName.endsWith(".wmv") || fileName.endsWith(".rm")
-                || fileName.endsWith(".rmvb") || fileName.endsWith(".viv")
-                || fileName.endsWith(".asf") || fileName.endsWith(".amv")
-                || fileName.endsWith(".mp4") || fileName.endsWith(".m4p")
-                || fileName.endsWith(".m4v") || fileName.endsWith(".mpg")
-                || fileName.endsWith(".mp2") || fileName.endsWith(".mpeg")
-                || fileName.endsWith(".mpe") || fileName.endsWith(".mpv")
-                || fileName.endsWith(".m2v") || fileName.endsWith(".svi")
-                || fileName.endsWith(".3gp") || fileName.endsWith(".3g2")
-                || fileName.endsWith(".mxf") || fileName.endsWith(".roq")
-                || fileName.endsWith(".nsv") || fileName.endsWith(".f4v")
-                || fileName.endsWith(".f4p") || fileName.endsWith(".f4a")
-                || fileName.endsWith(".f4b");
     }
 }

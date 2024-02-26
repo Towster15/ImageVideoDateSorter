@@ -9,7 +9,6 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +17,8 @@ import java.util.logging.Logger;
 
 public class ImageSorter extends Sorter {
     private final Logger LOGGER;
+    private final List<File> images;
+    private final List<File> aaeList;
     private final boolean separateBroken;
     private final boolean OSCreateDateSort;
     private final HashMap<String, String> datedImages = new HashMap<>();
@@ -34,13 +35,16 @@ public class ImageSorter extends Sorter {
      */
     public ImageSorter(
             Logger log,
-            File sourceDir,
+            List<File> imageList,
+            List<File> aaeList,
             File destinationDir,
             boolean separateBroken,
             boolean daySort,
             boolean OSCreateDateSort) {
-        super(sourceDir, destinationDir, daySort);
+        super(destinationDir, daySort);
         LOGGER = log;
+        images = imageList;
+        this.aaeList = aaeList;
         this.separateBroken = separateBroken;
         this.OSCreateDateSort = OSCreateDateSort;
     }
@@ -58,7 +62,6 @@ public class ImageSorter extends Sorter {
      * in the destination directory.
      */
     public void sortImages() {
-        List<File> images = listImageFiles(sourceDir);
         File brokenImages = new File(destinationDir + "/Broken Images");
         if (!brokenImages.mkdirs()) {
             LOGGER.log(Level.WARNING, "Failed to make broken images folder, expect more errors!");
@@ -101,7 +104,6 @@ public class ImageSorter extends Sorter {
         // their corresponding JPG/PNG images
         // Seems like they used to be produced alongside PNGs, but now
         // everything seems to be exported as JPG
-        List<File> aaeList = listAAEFiles(sourceDir);
         for (File aae : aaeList) {
             int fnlen = aae.getName().length();
             String pngKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
@@ -129,76 +131,6 @@ public class ImageSorter extends Sorter {
                 LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
             }
         }
-    }
-
-    /**
-     * Checks through a list of all files in the folder and returns
-     * only the image files within the list.
-     * <p>
-     * This uses the {@code listAllFiles} method to get the list of
-     * all files initially.
-     *
-     * @param cwd the folder to scan, current working directory
-     * @return the list of all images found
-     */
-    private static List<File> listImageFiles(File cwd) {
-        List<File> returnImages = new ArrayList<>();
-        List<File> thisFolderFileList = listAllFiles(cwd);
-        for (File file : thisFolderFileList) {
-            if (checkImageFile(file)) {
-                returnImages.add(file);
-            } else if (file.isDirectory()) {
-                returnImages.addAll(listImageFiles(file));
-            }
-        }
-        return returnImages;
-    }
-
-    /**
-     * Checks to see if the file provided has an image file extension.
-     *
-     * @param file the string of the path of the file to test
-     * @return returns true if the file given is a valid image,
-     * else returns false.
-     */
-    private static boolean checkImageFile(File file) {
-        String fileName = file.toPath().getFileName().toString().toLowerCase();
-        if (fileName.startsWith(".")) {
-            return false;
-        }
-        return fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")
-                || fileName.endsWith(".jpe") || fileName.endsWith(".jif")
-                || fileName.endsWith(".jfif") || fileName.endsWith(".jfi")
-                || fileName.endsWith(".jp2") || fileName.endsWith(".j2k")
-                || fileName.endsWith(".jpf") || fileName.endsWith(".jpx")
-                || fileName.endsWith(".jpm") || fileName.endsWith(".mj2")
-                || fileName.endsWith(".raw") || fileName.endsWith(".dib")
-                || fileName.endsWith(".svg") || fileName.endsWith(".svgz")
-                || fileName.endsWith(".png") || fileName.endsWith(".webp")
-                || fileName.endsWith(".gif") || fileName.endsWith(".bmp")
-                || fileName.endsWith(".heic") || fileName.endsWith(".heif")
-                || fileName.endsWith(".tiff") || fileName.endsWith(".tif");
-    }
-
-    /**
-     * Checks through a list of all files in the folder and returns
-     * only the AAE files within the list.
-     * <p>
-     * This uses the {@code listAllFiles} method to get the list of
-     * all files initially.
-     *
-     * @param cwd the folder to scan, current working directory
-     * @return the list of all images found
-     */
-    private static List<File> listAAEFiles(File cwd) {
-        List<File> returnImages = new ArrayList<>();
-        List<File> thisFolderFileList = listAllFiles(cwd);
-        for (File file : thisFolderFileList) {
-            if (file.getName().toLowerCase().endsWith(".aae")) {
-                returnImages.add(file);
-            }
-        }
-        return returnImages;
     }
 
     /**

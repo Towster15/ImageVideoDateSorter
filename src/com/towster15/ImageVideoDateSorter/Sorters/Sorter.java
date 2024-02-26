@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Sorter extends Thread {
-    protected final File sourceDir;
     protected final File destinationDir;
     private final HashMap<String, String> monthMap = new HashMap<>();
     protected final boolean daySort;
@@ -22,7 +21,7 @@ public class Sorter extends Thread {
      * @param destinationDir destination directory File
      * @param daySort        boolean to enable or disable sorting by days
      */
-    public Sorter(File sourceDir, File destinationDir, boolean daySort) {
+    public Sorter(File destinationDir, boolean daySort) {
         monthMap.put("01", "01 January");
         monthMap.put("02", "02 February");
         monthMap.put("03", "03 March");
@@ -36,32 +35,8 @@ public class Sorter extends Thread {
         monthMap.put("11", "11 November");
         monthMap.put("12", "12 December");
 
-        this.sourceDir = sourceDir;
         this.destinationDir = destinationDir;
         this.daySort = daySort;
-    }
-
-    /**
-     * Traverses through a folder and its sub-folders to find all
-     * files and adds them to a list. Uses recursion to check
-     * sub-folders.
-     *
-     * @param cwd the folder to scan, current working directory
-     * @return the list of all images found
-     */
-    protected static List<File> listAllFiles(File cwd) {
-        List<File> allFiles = new ArrayList<>();
-        File[] thisFolderFileList = cwd.listFiles();
-        if (thisFolderFileList != null) {
-            for (File file : thisFolderFileList) {
-                if (file.isFile()) {
-                    allFiles.add(file);
-                } else if (file.isDirectory()) {
-                    allFiles.addAll(listAllFiles(file));
-                }
-            }
-        }
-        return allFiles;
     }
 
     /**
