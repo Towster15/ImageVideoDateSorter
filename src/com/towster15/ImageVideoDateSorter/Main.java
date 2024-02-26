@@ -1,14 +1,13 @@
 package com.towster15.ImageVideoDateSorter;
 
-import com.towster15.ImageVideoDateSorter.Sorters.ImageSorter;
-import com.towster15.ImageVideoDateSorter.Sorters.VideoSorter;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -20,7 +19,7 @@ import java.util.logging.SimpleFormatter;
 
 import static javax.swing.GroupLayout.Alignment.CENTER;
 
-public class Main extends JFrame implements ActionListener, ItemListener {
+public class Main extends JFrame implements ActionListener, ItemListener, PropertyChangeListener {
     private final static String SELECT_SOURCE = "1";
     private final static String SELECT_DEST = "2";
     private final static String START = "3";
@@ -48,6 +47,8 @@ public class Main extends JFrame implements ActionListener, ItemListener {
     private boolean daySort = false;
     private boolean OSCreateDateSort = false;
     private boolean exitAfterSort = false;
+    private Worker worker = new Worker();
+    private Instant startTime;
     private static final Logger LOGGER = Logger.getLogger("com.towster15.ImageDateSorter");
     private static final FileHandler FH;
 
@@ -170,6 +171,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
+        getRootPane().putClientProperty("Window.documentModified", false);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
@@ -268,49 +270,13 @@ public class Main extends JFrame implements ActionListener, ItemListener {
                 checkReadyToSort();
                 break;
             case START:
-                Instant startTime = Instant.now();
-                ImageSorter imgSort = null;
-                VideoSorter vidSort = null;
-                showSortingDisabledReasonLabel.setText("Sorting in progress... please wait.");
-                exitButton.setEnabled(false);
+                startTime = Instant.now();
 
-                if (sortImages) {
-                    imgSort = new ImageSorter(LOGGER, sourceDir, destinationDir,
-                            separateBrokenImages, daySort, OSCreateDateSort);
-                    imgSort.start();
-                }
-                if (moveVideos) {
-                    vidSort = new VideoSorter(LOGGER, sourceDir, destinationDir,
-                            daySort, sortVideos);
-                    vidSort.start();
-                }
+                worker = new Worker(LOGGER, sourceDir, destinationDir, sortImages, moveVideos,
+                        separateBrokenImages, daySort, OSCreateDateSort, sortVideos);
+                worker.addPropertyChangeListener(this);
+                worker.execute();
 
-                if (imgSort != null) {
-                    try {
-                        imgSort.join();
-                    } catch (InterruptedException intEx) {
-                        LOGGER.log(Level.WARNING, "Main thread interrupted for img");
-                    }
-                }
-                if (vidSort != null) {
-                    try {
-                        vidSort.join();
-                    } catch (InterruptedException intEx) {
-                        LOGGER.log(Level.WARNING, "Main thread interrupted for vid");
-                    }
-                }
-
-                exitButton.setEnabled(true);
-                showSortingDisabledReasonLabel.setText("Ready.");
-
-                Instant endTime = Instant.now();
-                JOptionPane.showMessageDialog(
-                        this, String.format(
-                                "Finished in %s seconds!",
-                                humanReadableDuration(Duration.between(startTime, endTime))
-                        ),
-                        "Success!", JOptionPane.INFORMATION_MESSAGE
-                );
                 if (exitAfterSort) {
                     dispose();
                 }
@@ -346,6 +312,43 @@ public class Main extends JFrame implements ActionListener, ItemListener {
             exitAfterSort = !(e.getStateChange() == ItemEvent.DESELECTED);
         } else if (e.getItemSelectable() == OSCreateDateSortCheckBox) {
             OSCreateDateSort = !(e.getStateChange() == ItemEvent.DESELECTED);
+        }
+    }
+
+    /**
+     * This method gets called when a bound property is changed.
+     *
+     * @param evt A PropertyChangeEvent object describing the event source
+     *            and the property that has changed.
+     */
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if ("state".equals(evt.getPropertyName())) {
+            switch (worker.getState()) {
+                case SwingWorker.StateValue.PENDING:
+                    showSortingDisabledReasonLabel.setText("Ready.");
+                    getRootPane().putClientProperty("Window.documentModified", false);
+                    exitButton.setEnabled(true);
+                    break;
+                case SwingWorker.StateValue.STARTED:
+                    showSortingDisabledReasonLabel.setText("Sorting in progress... please wait.");
+                    getRootPane().putClientProperty("Window.documentModified", true);
+                    exitButton.setEnabled(false);
+                    break;
+                case SwingWorker.StateValue.DONE:
+                    showSortingDisabledReasonLabel.setText("Ready.");
+                    getRootPane().putClientProperty("Window.documentModified", false);
+                    exitButton.setEnabled(true);
+                    Instant endTime = Instant.now();
+                    JOptionPane.showMessageDialog(
+                            this, String.format(
+                                    "Finished in %s seconds!",
+                                    humanReadableDuration(Duration.between(startTime, endTime))
+                            ),
+                            "Success!", JOptionPane.INFORMATION_MESSAGE
+                    );
+                    break;
+            }
         }
     }
 
@@ -431,7 +434,7 @@ public class Main extends JFrame implements ActionListener, ItemListener {
         // both done on separate threads, ensuring the GUI stays
         // responsive whilst any processing is going on in the
         // background
-        EventQueue.invokeLater(new Runnable() {
+        SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 new Main().setVisible(true);
             }
