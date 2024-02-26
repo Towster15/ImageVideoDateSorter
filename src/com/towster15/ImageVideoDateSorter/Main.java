@@ -23,7 +23,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private final static String SELECT_SOURCE = "1";
     private final static String SELECT_DEST = "2";
     private final static String START = "3";
-    private final static String EXIT = "4";
+    private final static String CANCEL = "4";
     private final JCheckBox sortImageCheckBox;
     private final JCheckBox separateBrokenImagesCheckBox;
     private final JCheckBox moveVideoCheckBox;
@@ -32,7 +32,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private final JCheckBox OSCreateDateSortCheckBox;
     private final JCheckBox exitAfterSortCheckBox;
     private final JButton startSortingButton;
-    private final JButton exitButton;
+    private final JButton cancelButton;
     private final JLabel sourceDirLabel = new JLabel("No folder selected!");
     private final JLabel destinationDirLabel = new JLabel("No folder selected!");
     private final JLabel showSortingDisabledReasonLabel = new JLabel(
@@ -49,6 +49,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private boolean exitAfterSort = false;
     private Worker worker = new Worker();
     private Instant startTime;
+    private boolean sortCancelled = false;
     private static final Logger LOGGER = Logger.getLogger("com.towster15.ImageDateSorter");
     private static final FileHandler FH;
 
@@ -163,11 +164,12 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
         startSortingButton.addActionListener(this);
         startSortingButton.setEnabled(false);
 
-        // Exit button
-        exitButton = new JButton("Exit");
-        exitButton.setFont(FONT);
-        exitButton.setActionCommand(EXIT);
-        exitButton.addActionListener(this);
+        // Cancel button
+        cancelButton = new JButton("Cancel");
+        cancelButton.setFont(FONT);
+        cancelButton.setEnabled(true);
+        cancelButton.setActionCommand(CANCEL);
+        cancelButton.addActionListener(this);
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -205,7 +207,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                                 .addComponent(showSortingDisabledReasonLabel)
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(startSortingButton, 50, 75, 100)
-                                        .addComponent(exitButton, 50, 75, 100)
+                                        .addComponent(cancelButton, 50, 75, 100)
                                 )
                 )
         );
@@ -239,7 +241,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                         .addComponent(showSortingDisabledReasonLabel)
                         .addGroup(layout.createParallelGroup()
                                 .addComponent(startSortingButton)
-                                .addComponent(exitButton)
+                                .addComponent(cancelButton)
                         )
         );
 
@@ -281,8 +283,10 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                     dispose();
                 }
                 break;
-            case EXIT:
-                dispose();
+            case CANCEL:
+                sortCancelled = true;
+                worker.cancel(true);
+                // dispose();
                 break;
         }
     }
@@ -328,24 +332,26 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                 case SwingWorker.StateValue.PENDING:
                     showSortingDisabledReasonLabel.setText("Ready.");
                     getRootPane().putClientProperty("Window.documentModified", false);
-                    exitButton.setEnabled(true);
+                    cancelButton.setEnabled(false);
                     break;
                 case SwingWorker.StateValue.STARTED:
                     showSortingDisabledReasonLabel.setText("Sorting in progress... please wait.");
                     getRootPane().putClientProperty("Window.documentModified", true);
-                    exitButton.setEnabled(false);
+                    cancelButton.setEnabled(true);
                     break;
                 case SwingWorker.StateValue.DONE:
                     showSortingDisabledReasonLabel.setText("Ready.");
                     getRootPane().putClientProperty("Window.documentModified", false);
-                    exitButton.setEnabled(true);
+                    cancelButton.setEnabled(false);
                     Instant endTime = Instant.now();
                     JOptionPane.showMessageDialog(
                             this, String.format(
                                     "Finished in %s seconds!",
                                     humanReadableDuration(Duration.between(startTime, endTime))
                             ),
-                            "Success!", JOptionPane.INFORMATION_MESSAGE
+                            sortCancelled ? "Cancelled" : "Success!",
+                            sortCancelled ? JOptionPane.WARNING_MESSAGE :
+                                    JOptionPane.INFORMATION_MESSAGE
                     );
                     break;
             }
