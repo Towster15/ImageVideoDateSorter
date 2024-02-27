@@ -80,7 +80,6 @@ public class Worker extends SwingWorker<Void, Void> {
             if (checkImageFile(file)) {
                 imageList.add(file);
             } else if (file.getName().endsWith(".aae") || file.getName().endsWith(".AAE")) {
-                System.out.printf("add: %s%n", file.getName());
                 aaeList.add(file);
             } else if (checkVideoFile(file)) {
                 videoList.add(file);
