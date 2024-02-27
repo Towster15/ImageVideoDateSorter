@@ -9,6 +9,7 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -19,13 +20,14 @@ public class ImageSorter extends Sorter {
     private final Logger LOGGER;
     private final List<File> images;
     private final List<File> aaeList;
+    private final boolean sortAAEs;
     private final boolean separateBroken;
     private final boolean OSCreateDateSort;
     private final HashMap<String, String> datedImages = new HashMap<>();
 
     /**
      * @param log              the logger to report events to
-     * @param sourceDir        source directory file
+     * @param imageList        list of images to sort
      * @param destinationDir   destination directory file
      * @param separateBroken   boolean to enable or disable separating
      *                         broken images from the rest
@@ -36,7 +38,6 @@ public class ImageSorter extends Sorter {
     public ImageSorter(
             Logger log,
             List<File> imageList,
-            List<File> aaeList,
             File destinationDir,
             boolean separateBroken,
             boolean daySort,
@@ -44,7 +45,38 @@ public class ImageSorter extends Sorter {
         super(destinationDir, daySort);
         LOGGER = log;
         images = imageList;
+        this.aaeList = new ArrayList<>();
+        this.sortAAEs = false;
+        this.separateBroken = separateBroken;
+        this.OSCreateDateSort = OSCreateDateSort;
+        System.out.println("without");
+    }
+
+    /**
+     * @param log              the logger to report events to
+     * @param imageList        list of images to sort
+     * @param destinationDir   destination directory file
+     * @param separateBroken   boolean to enable or disable separating
+     *                         broken images from the rest
+     * @param sortAAEs         boolean for sorting the AAEs by date
+     * @param daySort          boolean to enable or disable sorting by days
+     * @param OSCreateDateSort boolean to enable or disable using the
+     *                         OS's creation date, as a fallback opt.
+     */
+    public ImageSorter(
+            Logger log,
+            List<File> imageList,
+            List<File> aaeList,
+            File destinationDir,
+            boolean separateBroken,
+            boolean sortAAEs,
+            boolean daySort,
+            boolean OSCreateDateSort) {
+        super(destinationDir, daySort);
+        LOGGER = log;
+        images = imageList;
         this.aaeList = aaeList;
+        this.sortAAEs = sortAAEs;
         this.separateBroken = separateBroken;
         this.OSCreateDateSort = OSCreateDateSort;
     }
@@ -66,14 +98,23 @@ public class ImageSorter extends Sorter {
         if (!brokenImages.mkdirs()) {
             LOGGER.log(Level.WARNING, "Failed to make broken images folder, expect more errors!");
         }
-        File looseAAEs = new File(destinationDir + "/Loose AAEs");
-        if (!looseAAEs.mkdirs()) {
-            LOGGER.log(Level.WARNING, "Failed to make loose AAEs folder, expect more errors!");
+        if (sortAAEs) {
+            File looseAAEs = new File(destinationDir + "/Loose AAEs");
+            if (!looseAAEs.mkdirs()) {
+                LOGGER.log(Level.WARNING, "Failed to make loose AAEs folder, expect more errors!");
+            }
+        } else {
+            File looseAAEs = new File(destinationDir + "/AAEs");
+            if (!looseAAEs.mkdirs()) {
+                LOGGER.log(Level.WARNING, "Failed to make AAEs folder, expect more errors!");
+            }
         }
         for (File image : images) {
             String date = getDateFromEXIF(image);
             if (date != null && !date.equals("null")) {
-                datedImages.put(image.getName(), date);
+                if (sortAAEs) {
+                    datedImages.put(image.getName(), date);
+                }
                 if (!checkDateFolderExists(date)) {
                     if (!makeDateFolder(date)) {
                         LOGGER.log(Level.WARNING, "Failed to make date folder", date);
@@ -100,35 +141,47 @@ public class ImageSorter extends Sorter {
             }
         }
 
-        // Deal with AAE files that should (ideally) be kept with
-        // their corresponding JPG/PNG images
-        // Seems like they used to be produced alongside PNGs, but now
-        // everything seems to be exported as JPG
-        for (File aae : aaeList) {
-            int fnlen = aae.getName().length();
-            String pngKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
-            String jpgKey = aae.getName().substring(0, fnlen - 4) + ".PNG";
+        if (!aaeList.isEmpty() && sortAAEs) {
+            // Deal with AAE files that should (ideally) be kept with
+            // their corresponding JPG/PNG images
+            // Seems like they used to be produced alongside PNGs, but now
+            // everything seems to be exported as JPG
+            for (File aae : aaeList) {
+                int fnlen = aae.getName().length();
+                String pngKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
+                String jpgKey = aae.getName().substring(0, fnlen - 4) + ".PNG";
 
-            try {
-                if (datedImages.containsKey(jpgKey)) {
-                    if (Objects.equals(datedImages.get(jpgKey), "null")) {
-                        moveToFolder(aae.toPath(), "Broken Images");
+                try {
+                    if (datedImages.containsKey(jpgKey)) {
+                        if (Objects.equals(datedImages.get(jpgKey), "null")) {
+                            moveToFolder(aae.toPath(), "Broken Images");
+                        } else {
+                            moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                        }
+                    } else if (datedImages.containsKey(pngKey)) {
+                        if (Objects.equals(datedImages.get(pngKey), "null")) {
+                            moveToFolder(aae.toPath(), "Broken Images");
+                        } else {
+                            moveDatedFile(aae.toPath(), datedImages.get(pngKey));
+                        }
                     } else {
-                        moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                        moveToFolder(aae.toPath(), "Loose AAEs");
                     }
-                } else if (datedImages.containsKey(pngKey)) {
-                    if (Objects.equals(datedImages.get(pngKey), "null")) {
-                        moveToFolder(aae.toPath(), "Broken Images");
-                    } else {
-                        moveDatedFile(aae.toPath(), datedImages.get(pngKey));
-                    }
-                } else {
-                    moveToFolder(aae.toPath(), "Loose AAEs");
+                } catch (FileAlreadyExistsException fEx) {
+                    LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
+                } catch (IOException ioEx) {
+                    LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
                 }
-            } catch (FileAlreadyExistsException fEx) {
-                LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
-            } catch (IOException ioEx) {
-                LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
+            }
+        } else if (!aaeList.isEmpty()) {
+            for (File aae : aaeList) {
+                try {
+                    moveToFolder(aae.toPath(), "AAEs");
+                } catch (FileAlreadyExistsException fEx) {
+                    LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
+                } catch (IOException ioEx) {
+                    LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
+                }
             }
         }
     }

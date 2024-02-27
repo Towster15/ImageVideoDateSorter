@@ -19,11 +19,13 @@ public class Worker extends SwingWorker<Void, Void> {
     private List<File> aaeList;
     private List<File> videoList;
     private boolean sortImages;
-    private boolean moveVideos;
     private boolean separateBrokenImages;
+    private boolean moveAAEs;
+    private boolean sortAAEs;
+    private boolean moveVideos;
+    private boolean sortVideos;
     private boolean daySort;
     private boolean OSCreateDateSort;
-    private boolean sortVideos;
 
     public Worker() {}
 
@@ -32,22 +34,26 @@ public class Worker extends SwingWorker<Void, Void> {
             File sourceDir,
             File destinationDir,
             boolean sortImages,
-            boolean moveVideos,
             boolean separateBroken,
+            boolean moveAAEs,
+            boolean sortAAEs,
+            boolean moveVideos,
+            boolean sortVideos,
             boolean daySort,
-            boolean OSCreateDateSort,
-            boolean sortVideos
+            boolean OSCreateDateSort
     ) {
         allowStart = true;
         logger = log;
         this.sourceDir = sourceDir;
         this.destinationDir = destinationDir;
         this.sortImages = sortImages;
-        this.moveVideos = moveVideos;
         this.separateBrokenImages = separateBroken;
+        this.moveAAEs = moveAAEs;
+        this.sortAAEs = sortAAEs;
+        this.moveVideos = moveVideos;
+        this.sortVideos = sortVideos;
         this.daySort = daySort;
         this.OSCreateDateSort = OSCreateDateSort;
-        this.sortVideos = sortVideos;
     }
 
     private static List<File> listAllFiles(File cwd) {
@@ -73,7 +79,8 @@ public class Worker extends SwingWorker<Void, Void> {
         for (File file : listAllFiles(sourceDir)) {
             if (checkImageFile(file)) {
                 imageList.add(file);
-            } else if (file.getName().toLowerCase().endsWith(".aae")) {
+            } else if (file.getName().endsWith(".aae") || file.getName().endsWith(".AAE")) {
+                System.out.printf("add: %s%n", file.getName());
                 aaeList.add(file);
             } else if (checkVideoFile(file)) {
                 videoList.add(file);
@@ -152,11 +159,17 @@ public class Worker extends SwingWorker<Void, Void> {
      */
     @Override
     protected Void doInBackground() {
+        splitFileList();
         ImageSorter imgSort = null;
         VideoSorter vidSort = null;
         if (sortImages) {
-            imgSort = new ImageSorter(logger, imageList, aaeList, destinationDir,
-                    separateBrokenImages, daySort, OSCreateDateSort);
+            if (moveAAEs) {
+                imgSort = new ImageSorter(logger, imageList, aaeList, destinationDir,
+                        separateBrokenImages, sortAAEs, daySort, OSCreateDateSort);
+            } else {
+                imgSort = new ImageSorter(logger, imageList, destinationDir,
+                        separateBrokenImages, daySort, OSCreateDateSort);
+            }
             imgSort.start();
         }
         if (moveVideos) {

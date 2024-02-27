@@ -26,6 +26,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private final static String CANCEL = "4";
     private final JCheckBox sortImageCheckBox;
     private final JCheckBox separateBrokenImagesCheckBox;
+    private final JCheckBox moveAAEsCheckBox;
+    private final JCheckBox sortAAEsCheckBox;
     private final JCheckBox moveVideoCheckBox;
     private final JCheckBox sortVideoCheckBox;
     private final JCheckBox daySortCheckBox;
@@ -42,6 +44,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private File destinationDir = new File("");
     private boolean sortImages = true;
     private boolean separateBrokenImages = false;
+    private boolean moveAAEs = true;
+    private boolean sortAAEs = true;
     private boolean moveVideos = false;
     private boolean sortVideos = false;
     private boolean daySort = false;
@@ -75,17 +79,14 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
         JLabel titleLabel = new JLabel("Image Sorter thing");
         titleLabel.setFont(TITLEFONT);
 
-        // Source directory button
         final JButton sourceDirectorySelectButton = new JButton("Select a source directory");
         sourceDirectorySelectButton.setFont(FONT);
         sourceDirectorySelectButton.setActionCommand(SELECT_SOURCE);
         sourceDirectorySelectButton.addActionListener(this);
 
-        // Selected source directory label
         JLabel sourceSelectedDirLabel = new JLabel("Selected directory:");
         sourceSelectedDirLabel.setFont(FONT);
 
-        // Destination directory button
         final JButton destinationDirectorySelectButton = new JButton(
                 "Select a destination directory"
         );
@@ -93,33 +94,43 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
         destinationDirectorySelectButton.setActionCommand(SELECT_DEST);
         destinationDirectorySelectButton.addActionListener(this);
 
-        // Selected destination directory label
         JLabel destinationDirectoryLabel = new JLabel("Selected directory:");
         destinationDirectoryLabel.setFont(FONT);
 
         JSeparator sep1 = new JSeparator(SwingConstants.HORIZONTAL);
 
-        // Sort images by date checkbox
         sortImageCheckBox = new JCheckBox("Sort Images");
         sortImageCheckBox.doClick();
         sortImageCheckBox.setFont(FONT);
         sortImageCheckBox.addItemListener(this);
 
-        // Separate broken images checkbox
         separateBrokenImagesCheckBox = new JCheckBox("Separate Broken Images");
         separateBrokenImagesCheckBox.setToolTipText("Images with unreadable data (likely broken) " +
                 " will be moved to a separate folder.");
         separateBrokenImagesCheckBox.setFont(FONT);
         separateBrokenImagesCheckBox.addItemListener(this);
 
-        // Move videos to videos folder checkbox
+        moveAAEsCheckBox = new JCheckBox("Move AAEs");
+        moveAAEsCheckBox.setToolTipText("AAE files are typically created when exporting edited " +
+                "images from iOS devices to Windows and they contain the edits to the image. " +
+                "Generally you want to keep them together, although you can't recombine them.");
+        moveAAEsCheckBox.setEnabled(true);
+        moveAAEsCheckBox.setFont(FONT);
+        moveAAEsCheckBox.addItemListener(this);
+
+        sortAAEsCheckBox = new JCheckBox("Sort AAEs");
+        sortAAEsCheckBox.setToolTipText("Sorts the AAE files to be with their matching images " +
+                "where possible. This will hinder speed as it forces images to be sorted in a " +
+                "single-threaded manner.");
+        sortAAEsCheckBox.setFont(FONT);
+        sortAAEsCheckBox.addItemListener(this);
+
         moveVideoCheckBox = new JCheckBox("Move Videos");
         moveVideoCheckBox.setToolTipText("Moves the videos from the source folder to a videos " +
                 "folder within the destination folder.");
         moveVideoCheckBox.setFont(FONT);
         moveVideoCheckBox.addItemListener(this);
 
-        // Sort videos by date checkbox
         sortVideoCheckBox = new JCheckBox("Sort Videos");
         sortVideoCheckBox.setToolTipText("Sort the videos using the same fallback date sorting as" +
                 " images. Prevents videos being stored separately to images.");
@@ -129,13 +140,11 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
 
         JSeparator sep2 = new JSeparator(SwingConstants.HORIZONTAL);
 
-        // Day sorting checkbox
         daySortCheckBox = new JCheckBox("Day Sorting");
         daySortCheckBox.setToolTipText("Enable sorting by year-month-day, versus year-month.");
         daySortCheckBox.setFont(FONT);
         daySortCheckBox.addItemListener(this);
 
-        // OS Create Date
         OSCreateDateSortCheckBox = new JCheckBox("Fallback date sorting");
         OSCreateDateSortCheckBox.setToolTipText("If the date can't be collected from the EXIF " +
                 "data, use the date created recorded by the OS to sort the image. It's not as " +
@@ -144,7 +153,6 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
         OSCreateDateSortCheckBox.setFont(FONT);
         OSCreateDateSortCheckBox.addItemListener(this);
 
-        // Exit after sort checkbox
         exitAfterSortCheckBox = new JCheckBox("Exit after sort");
         exitAfterSortCheckBox.setFont(FONT);
         exitAfterSortCheckBox.addItemListener(this);
@@ -154,20 +162,17 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
         JLabel statusLabel = new JLabel("Status:");
         statusLabel.setFont(FONT);
 
-        // Show the user why they can't start sorting yet
         showSortingDisabledReasonLabel.setFont(STATUSFONT);
 
-        // Start sorting button
         startSortingButton = new JButton("Start");
         startSortingButton.setFont(FONT);
         startSortingButton.setActionCommand(START);
         startSortingButton.addActionListener(this);
         startSortingButton.setEnabled(false);
 
-        // Cancel button
         cancelButton = new JButton("Cancel");
         cancelButton.setFont(FONT);
-        cancelButton.setEnabled(true);
+        cancelButton.setEnabled(false);
         cancelButton.setActionCommand(CANCEL);
         cancelButton.addActionListener(this);
 
@@ -191,6 +196,10 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(sortImageCheckBox)
                                         .addComponent(separateBrokenImagesCheckBox)
+                                )
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(moveAAEsCheckBox)
+                                        .addComponent(sortAAEsCheckBox)
                                 )
                                 .addGroup(layout.createSequentialGroup()
                                         .addComponent(moveVideoCheckBox)
@@ -225,6 +234,10 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                         .addGroup(layout.createParallelGroup()
                                 .addComponent(sortImageCheckBox)
                                 .addComponent(separateBrokenImagesCheckBox)
+                        )
+                        .addGroup(layout.createParallelGroup()
+                                .addComponent(sortAAEsCheckBox)
+                                .addComponent(moveAAEsCheckBox)
                         )
                         .addGroup(layout.createParallelGroup()
                                 .addComponent(moveVideoCheckBox)
@@ -274,8 +287,10 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
             case START:
                 startTime = Instant.now();
 
-                worker = new Worker(LOGGER, sourceDir, destinationDir, sortImages, moveVideos,
-                        separateBrokenImages, daySort, OSCreateDateSort, sortVideos);
+                worker = new Worker(
+                        LOGGER, sourceDir, destinationDir, sortImages, separateBrokenImages,
+                        moveAAEs, sortAAEs, moveVideos, sortVideos, daySort, OSCreateDateSort
+                );
                 worker.addPropertyChangeListener(this);
                 worker.execute();
 
@@ -301,8 +316,15 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
             sortImages = !(e.getStateChange() == ItemEvent.DESELECTED);
             checkReadyToSort();
             separateBrokenImagesCheckBox.setEnabled(sortImages);
+            moveAAEsCheckBox.setEnabled(sortImages);
+            sortAAEsCheckBox.setEnabled(sortImages && moveAAEs);
         } else if (e.getItemSelectable() == separateBrokenImagesCheckBox) {
             separateBrokenImages = !(e.getStateChange() == ItemEvent.DESELECTED);
+        } else if (e.getItemSelectable() == moveAAEsCheckBox) {
+            moveAAEs = (e.getStateChange() == ItemEvent.SELECTED);
+            sortAAEsCheckBox.setEnabled(sortImages && moveAAEs);
+        } else if (e.getItemSelectable() == sortAAEsCheckBox) {
+            sortAAEs = (e.getStateChange() == ItemEvent.SELECTED);
         } else if (e.getItemSelectable() == moveVideoCheckBox) {
             moveVideos = !(e.getStateChange() == ItemEvent.DESELECTED);
             checkReadyToSort();
