@@ -21,6 +21,7 @@ public class ImageSorter extends Sorter {
     private final List<File> images;
     private final List<File> aaeList;
     private final boolean sortAAEs;
+    private final boolean dealwithAAEs;
     private final boolean separateBroken;
     private final boolean OSCreateDateSort;
     private final HashMap<String, String> datedImages = new HashMap<>();
@@ -47,6 +48,7 @@ public class ImageSorter extends Sorter {
         images = imageList;
         this.aaeList = new ArrayList<>();
         this.sortAAEs = false;
+        this.dealwithAAEs = false;
         this.separateBroken = separateBroken;
         this.OSCreateDateSort = OSCreateDateSort;
         System.out.println("without");
@@ -77,6 +79,7 @@ public class ImageSorter extends Sorter {
         images = imageList;
         this.aaeList = aaeList;
         this.sortAAEs = sortAAEs;
+        this.dealwithAAEs = true;
         this.separateBroken = separateBroken;
         this.OSCreateDateSort = OSCreateDateSort;
     }
@@ -141,7 +144,7 @@ public class ImageSorter extends Sorter {
             }
         }
 
-        if (!aaeList.isEmpty() && sortAAEs) {
+        if (dealwithAAEs) {
             // Deal with AAE files that should (ideally) be kept with
             // their corresponding JPG/PNG images
             // Seems like they used to be produced alongside PNGs, but now
