@@ -239,6 +239,9 @@ public class ImageSorter extends Sorter {
         } catch (IllegalArgumentException argEx) {
             LOGGER.log(Level.INFO, "Apache doesn't support image ext, using fallback");
         }
+        catch (NullPointerException npx) {
+            LOGGER.log(Level.WARNING, "Null returned for EXIF data: " + file.getName());
+        }
         if (OSCreateDateSort) {
             try {
                 return getDate(file);
