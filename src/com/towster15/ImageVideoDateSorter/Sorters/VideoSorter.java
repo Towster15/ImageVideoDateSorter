@@ -2,6 +2,7 @@ package com.towster15.ImageVideoDateSorter.Sorters;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,7 +49,7 @@ public class VideoSorter extends Sorter {
     public void sortVideos() {
         if (!sortVideos) {
             File file = new File(destinationDir + "/Videos");
-            if (!file.mkdirs()) {
+            if (!(file.mkdirs() || Files.exists(file.toPath()))) {
                 LOGGER.log(Level.WARNING, "Failed to make Videos folder, not sorting images");
                 return;
             }

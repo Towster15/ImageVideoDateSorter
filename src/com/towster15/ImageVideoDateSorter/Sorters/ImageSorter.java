@@ -9,10 +9,8 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,17 +96,17 @@ public class ImageSorter extends Sorter {
      */
     public void sortImages() {
         File brokenImages = new File(destinationDir + "/Broken Images");
-        if (!brokenImages.mkdirs()) {
+        if (!(brokenImages.mkdirs() || Files.exists(brokenImages.toPath()))) {
             LOGGER.log(Level.WARNING, "Failed to make broken images folder, expect more errors!");
         }
         if (sortAAEs) {
             File looseAAEs = new File(destinationDir + "/Loose AAEs");
-            if (!looseAAEs.mkdirs()) {
+            if (!(looseAAEs.mkdirs() || Files.exists(looseAAEs.toPath()))) {
                 LOGGER.log(Level.WARNING, "Failed to make loose AAEs folder, expect more errors!");
             }
         } else {
             File looseAAEs = new File(destinationDir + "/AAEs");
-            if (!looseAAEs.mkdirs()) {
+            if (!(looseAAEs.mkdirs() || Files.exists(looseAAEs.toPath()))) {
                 LOGGER.log(Level.WARNING, "Failed to make AAEs folder, expect more errors!");
             }
         }
@@ -151,8 +149,8 @@ public class ImageSorter extends Sorter {
             // everything seems to be exported as JPG
             for (File aae : aaeList) {
                 int fnlen = aae.getName().length();
-                String pngKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
-                String jpgKey = aae.getName().substring(0, fnlen - 4) + ".PNG";
+                String jpgKey = aae.getName().substring(0, fnlen - 4) + ".JPG";
+                String pngKey = aae.getName().substring(0, fnlen - 4) + ".PNG";
 
                 try {
                     if (datedImages.containsKey(jpgKey)) {
@@ -170,16 +168,6 @@ public class ImageSorter extends Sorter {
                     } else {
                         moveToFolder(aae.toPath(), "Loose AAEs");
                     }
-                } catch (FileAlreadyExistsException fEx) {
-                    LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
-                } catch (IOException ioEx) {
-                    LOGGER.log(Level.WARNING, "Failed to make date folder, IOException");
-                }
-            }
-        } else if (!aaeList.isEmpty()) {
-            for (File aae : aaeList) {
-                try {
-                    moveToFolder(aae.toPath(), "AAEs");
                 } catch (FileAlreadyExistsException fEx) {
                     LOGGER.log(Level.WARNING, "AAE already exists in folder", aae);
                 } catch (IOException ioEx) {
@@ -213,13 +201,26 @@ public class ImageSorter extends Sorter {
             final ImageMetadata metadata = Imaging.getMetadata(file);
             if (metadata instanceof JpegImageMetadata) {
                 final JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+
                 if (jpegMetadata.getExif().getFieldValue(
                         ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL
                 ) != null) {
-                    return jpegMetadata.getExif().getFieldValue(
+                    String dtOriginal = jpegMetadata.getExif().getFieldValue(
                             ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL
                     )[0].substring(0, 10);
-                } else if (
+                    boolean success = true;
+                    try {
+                        Integer.parseInt(dtOriginal.substring(0, 4));
+                        Integer.parseInt(dtOriginal.substring(5, 7));
+                        Integer.parseInt(dtOriginal.substring(8, 10));
+                    } catch (NumberFormatException nfe) {
+                        success = false;
+                    }
+                    if (success) {
+                    return jpegMetadata.getExif().getFieldValue(
+                            ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL
+                    )[0].substring(0, 10);}
+                } if (
                         jpegMetadata.getExif().getFieldValue(
                                 ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
                         ) != null) {
