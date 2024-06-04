@@ -285,6 +285,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                 checkReadyToSort();
                 break;
             case START:
+                startSortingButton.setEnabled(false);
                 startTime = Instant.now();
 
                 worker = new Worker(
@@ -364,6 +365,7 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                     showSortingDisabledReasonLabel.setText("Ready.");
                     getRootPane().putClientProperty("Window.documentModified", false);
                     cancelButton.setEnabled(false);
+                    startSortingButton.setEnabled(true);
                     Instant endTime = Instant.now();
                     JOptionPane.showMessageDialog(
                             this, String.format(
