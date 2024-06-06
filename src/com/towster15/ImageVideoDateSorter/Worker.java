@@ -28,6 +28,8 @@ public class Worker extends SwingWorker<Void, Void> {
     private boolean sortVideos;
     private boolean daySort;
     private boolean OSCreateDateSort;
+    private boolean sortAllFiles;
+    private boolean copyInsteadOfMove;
 
     public Worker() {}
 
@@ -42,7 +44,9 @@ public class Worker extends SwingWorker<Void, Void> {
             boolean moveVideos,
             boolean sortVideos,
             boolean daySort,
-            boolean OSCreateDateSort
+            boolean OSCreateDateSort,
+            boolean sortAllFiles,
+            boolean copyInsteadOfMove
     ) {
         allowStart = true;
         logger = log;
@@ -56,6 +60,8 @@ public class Worker extends SwingWorker<Void, Void> {
         this.sortVideos = sortVideos;
         this.daySort = daySort;
         this.OSCreateDateSort = OSCreateDateSort;
+        this.sortAllFiles = sortAllFiles;
+        this.copyInsteadOfMove = copyInsteadOfMove;
     }
 
     private static List<File> listAllFiles(File cwd) {
@@ -83,7 +89,7 @@ public class Worker extends SwingWorker<Void, Void> {
                 imageList.add(file);
             } else if (file.getName().endsWith(".aae") || file.getName().endsWith(".AAE")) {
                 aaeList.add(file);
-            } else if (checkVideoFile(file)) {
+            } else if (checkVideoFile(file) || sortAllFiles) {
                 videoList.add(file);
             }
         }
