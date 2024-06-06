@@ -40,8 +40,9 @@ public class ImageSorter extends Sorter {
             File destinationDir,
             boolean separateBroken,
             boolean daySort,
-            boolean OSCreateDateSort) {
-        super(destinationDir, daySort);
+            boolean OSCreateDateSort,
+            boolean copyInsteadOfMove) {
+        super(destinationDir, daySort, copyInsteadOfMove);
         LOGGER = log;
         images = imageList;
         this.aaeList = new ArrayList<>();
@@ -71,8 +72,9 @@ public class ImageSorter extends Sorter {
             boolean separateBroken,
             boolean sortAAEs,
             boolean daySort,
-            boolean OSCreateDateSort) {
-        super(destinationDir, daySort);
+            boolean OSCreateDateSort,
+            boolean copyInsteadOfMove) {
+        super(destinationDir, daySort, copyInsteadOfMove);
         LOGGER = log;
         images = imageList;
         this.aaeList = aaeList;
@@ -123,7 +125,7 @@ public class ImageSorter extends Sorter {
                     }
                 }
                 try {
-                    moveDatedFile(image.toPath(), date);
+                    sortDatedFile(image.toPath(), date);
                 } catch (FileAlreadyExistsException fEx) {
                     LOGGER.log(Level.WARNING, String.format("File already exists in %s folder",
                             date), image);
@@ -157,13 +159,13 @@ public class ImageSorter extends Sorter {
                         if (Objects.equals(datedImages.get(jpgKey), "null")) {
                             moveToFolder(aae.toPath(), "Broken Images");
                         } else {
-                            moveDatedFile(aae.toPath(), datedImages.get(jpgKey));
+                            sortDatedFile(aae.toPath(), datedImages.get(jpgKey));
                         }
                     } else if (datedImages.containsKey(pngKey)) {
                         if (Objects.equals(datedImages.get(pngKey), "null")) {
                             moveToFolder(aae.toPath(), "Broken Images");
                         } else {
-                            moveDatedFile(aae.toPath(), datedImages.get(pngKey));
+                            sortDatedFile(aae.toPath(), datedImages.get(pngKey));
                         }
                     } else {
                         moveToFolder(aae.toPath(), "Loose AAEs");

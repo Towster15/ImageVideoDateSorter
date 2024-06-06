@@ -7,11 +7,13 @@ import java.util.List;
 public class SortController extends Thread {
     protected final File destinationDir;
     protected final boolean daySort;
+    protected final boolean copyInsteadOfMove;
     protected final int core_count = Runtime.getRuntime().availableProcessors();
 
-    public SortController(File destinationDir, boolean daySort) {
+    public SortController(File destinationDir, boolean daySort, boolean copyInsteadOfMove) {
         this.destinationDir = destinationDir;
         this.daySort = daySort;
+        this.copyInsteadOfMove = copyInsteadOfMove;
     }
 
     protected List<List<File>> splitFileList(List<File> inputList) {

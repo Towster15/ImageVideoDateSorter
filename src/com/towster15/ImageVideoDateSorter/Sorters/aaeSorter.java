@@ -13,8 +13,9 @@ public class aaeSorter extends Sorter {
     private final File destinationDir;
     private final List<File> aaes;
 
-    public aaeSorter(Logger log, List<File> aaeList, File destinationDir) {
-        super(destinationDir, false);
+    public aaeSorter(Logger log, List<File> aaeList, File destinationDir,
+                     boolean copyInsteadOfMove) {
+        super(destinationDir, false, copyInsteadOfMove);
         this.LOGGER = log;
         this.destinationDir = destinationDir;
         aaes = aaeList;

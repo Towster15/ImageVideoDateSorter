@@ -5,7 +5,6 @@ import com.towster15.ImageVideoDateSorter.Sorters.aaeSorter;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -23,8 +22,9 @@ public class ImgSortController extends SortController {
             File destinationDir,
             boolean separateBroken,
             boolean daySort,
-            boolean OSCreateDateSort) {
-        super(destinationDir, daySort);
+            boolean OSCreateDateSort,
+            boolean copyInsteadOfMove) {
+        super(destinationDir, daySort, copyInsteadOfMove);
         LOGGER = log;
         images = imageList;
         this.aaeList = new ArrayList<>();
@@ -41,8 +41,9 @@ public class ImgSortController extends SortController {
             boolean separateBroken,
             boolean sortAAEs,
             boolean daySort,
-            boolean OSCreateDateSort) {
-        super(destinationDir, daySort);
+            boolean OSCreateDateSort,
+            boolean copyInsteadOfMove) {
+        super(destinationDir, daySort, copyInsteadOfMove);
         LOGGER = log;
         images = imageList;
         this.aaeList = aaeList;
@@ -54,7 +55,7 @@ public class ImgSortController extends SortController {
     public void run() {
         if (sortAAEs) {
             ImageSorter imageSorter = new ImageSorter(LOGGER, images, aaeList, destinationDir,
-                    separateBroken, true, daySort, OSCreateDateSort);
+                    separateBroken, true, daySort, OSCreateDateSort, copyInsteadOfMove);
             imageSorter.start();
             try {
                 imageSorter.join();
@@ -66,10 +67,10 @@ public class ImgSortController extends SortController {
             List<Thread> sorterThreads = new ArrayList<>();
             for (int i = 0; i < core_count; i++) {
                 sorterThreads.add(new ImageSorter(LOGGER, images,destinationDir,
-                        separateBroken, daySort, OSCreateDateSort));
+                        separateBroken, daySort, OSCreateDateSort, copyInsteadOfMove));
                 sorterThreads.getLast().start();
             }
-            sorterThreads.add(new aaeSorter(LOGGER, aaeList, destinationDir));
+            sorterThreads.add(new aaeSorter(LOGGER, aaeList, destinationDir, copyInsteadOfMove));
             for (Thread thread : sorterThreads) {
                 try {
                     thread.join();

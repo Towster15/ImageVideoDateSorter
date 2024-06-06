@@ -3,7 +3,6 @@ package com.towster15.ImageVideoDateSorter.Sorters;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,8 +25,9 @@ public class VideoSorter extends Sorter {
             List<File> videoList,
             File destinationDir,
             boolean daySort,
-            boolean sortVideos) {
-        super(destinationDir, daySort);
+            boolean sortVideos,
+            boolean copyInsteadOfMove) {
+        super(destinationDir, daySort, copyInsteadOfMove);
         LOGGER = log;
         videos = videoList;
         this.sortVideos = sortVideos;
@@ -70,7 +70,7 @@ public class VideoSorter extends Sorter {
             }
             try {
                 if (sortVideos) {
-                    moveDatedFile(video.toPath(), date);
+                    sortDatedFile(video.toPath(), date);
                 } else {
                     moveToFolder(video.toPath(), "Videos");
                 }

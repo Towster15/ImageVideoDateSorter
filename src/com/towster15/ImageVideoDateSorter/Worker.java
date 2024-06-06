@@ -2,8 +2,6 @@ package com.towster15.ImageVideoDateSorter;
 
 import com.towster15.ImageVideoDateSorter.SortControllers.ImgSortController;
 import com.towster15.ImageVideoDateSorter.SortControllers.VidSortController;
-import com.towster15.ImageVideoDateSorter.Sorters.ImageSorter;
-import com.towster15.ImageVideoDateSorter.Sorters.VideoSorter;
 
 import javax.swing.*;
 import java.io.File;
@@ -172,16 +170,16 @@ public class Worker extends SwingWorker<Void, Void> {
         if (sortImages) {
             if (moveAAEs) {
                 imgSort = new ImgSortController(logger, imageList, aaeList, destinationDir,
-                        separateBrokenImages, sortAAEs, daySort, OSCreateDateSort);
+                        separateBrokenImages, sortAAEs, daySort, OSCreateDateSort, copyInsteadOfMove);
             } else {
                 imgSort = new ImgSortController(logger, imageList, destinationDir,
-                        separateBrokenImages, daySort, OSCreateDateSort);
+                        separateBrokenImages, daySort, OSCreateDateSort, copyInsteadOfMove);
             }
             imgSort.start();
         }
         if (moveVideos) {
             vidSort = new VidSortController(logger, videoList, destinationDir,
-                    daySort, sortVideos);
+                    daySort, sortVideos, copyInsteadOfMove);
             vidSort.start();
         }
 

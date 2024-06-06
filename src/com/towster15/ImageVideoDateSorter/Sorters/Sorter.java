@@ -13,12 +13,13 @@ public class Sorter extends Thread {
     protected final File destinationDir;
     private final HashMap<String, String> monthMap = new HashMap<>();
     protected final boolean daySort;
+    protected final boolean copyInsteadOfMove;
 
     /**
      * @param destinationDir destination directory File
      * @param daySort        boolean to enable or disable sorting by days
      */
-    public Sorter(File destinationDir, boolean daySort) {
+    public Sorter(File destinationDir, boolean daySort, boolean copyInsteadOfMove) {
         monthMap.put("01", "01 January");
         monthMap.put("02", "02 February");
         monthMap.put("03", "03 March");
@@ -34,6 +35,7 @@ public class Sorter extends Thread {
 
         this.destinationDir = destinationDir;
         this.daySort = daySort;
+        this.copyInsteadOfMove = copyInsteadOfMove;
     }
 
     /**
@@ -96,6 +98,14 @@ public class Sorter extends Thread {
         return file.mkdirs();
     }
 
+    protected void sortDatedFile(Path filePath, String date) throws IOException {
+        if (copyInsteadOfMove) {
+            copyDatedFile(filePath, date);
+        } else {
+            moveDatedFile(filePath, date);
+        }
+    }
+
     /**
      * Moves the provided file to the corresponding date folder.
      *
@@ -149,6 +159,77 @@ public class Sorter extends Thread {
                         );
                     } else {
                         Files.move(
+                                filePath,
+                                Path.of(
+                                        destinationDir.getAbsolutePath(),
+                                        year, month,
+                                        filePath.getFileName().toString().substring(
+                                                0, b - extension.length()
+                                        ) + String.format("(%d)%s", duplicate_num, extension)
+                                )
+                        );
+                    }
+                } catch (FileAlreadyExistsException ex) {
+                    successful_move = false;
+                    duplicate_num++;
+                }
+            }
+        }
+    }
+
+    /**
+     * Moves the provided file to the corresponding date folder.
+     *
+     * @param filePath the path of the image to be moved
+     * @param date     the date the image was taken/created
+     */
+    protected void copyDatedFile(Path filePath, String date) throws IOException {
+        String year = date.substring(0, 4);
+        String month = monthMap.get(date.substring(5, 7));
+        String day = date.substring(8, 10);
+
+        try {
+            if (daySort) {
+                Files.copy(
+                        filePath,
+                        Path.of(
+                                destinationDir.getAbsolutePath(), year, month, day,
+                                filePath.getFileName().toString()
+                        )
+                );
+            } else {
+                Files.copy(
+                        filePath,
+                        Path.of(
+                                destinationDir.getAbsolutePath(), year, month,
+                                filePath.getFileName().toString()
+                        )
+                );
+            }
+        } catch (FileAlreadyExistsException e) {
+            boolean successful_move = false;
+            int duplicate_num = 1;
+
+            int i = filePath.toString().lastIndexOf('.');
+            String extension = filePath.toString().substring(i);
+            int b = filePath.getFileName().toString().length();
+
+            while (!successful_move) {
+                try {
+                    successful_move = true;
+                    if (daySort) {
+                        Files.copy(
+                                filePath,
+                                Path.of(
+                                        destinationDir.getAbsolutePath(),
+                                        year, month, day,
+                                        filePath.getFileName().toString().substring(
+                                                0, b - extension.length()
+                                        ) + String.format("(%d)%s", duplicate_num, extension)
+                                )
+                        );
+                    } else {
+                        Files.copy(
                                 filePath,
                                 Path.of(
                                         destinationDir.getAbsolutePath(),
