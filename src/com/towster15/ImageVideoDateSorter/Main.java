@@ -32,6 +32,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private final JCheckBox sortVideoCheckBox;
     private final JCheckBox daySortCheckBox;
     private final JCheckBox OSCreateDateSortCheckBox;
+    private final JCheckBox sortAllFilesCheckBox;
+    private final JCheckBox copyInsteadOfMoveCheckBox;
     private final JCheckBox exitAfterSortCheckBox;
     private final JButton startSortingButton;
     private final JButton cancelButton;
@@ -50,6 +52,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
     private boolean sortVideos = false;
     private boolean daySort = false;
     private boolean OSCreateDateSort = false;
+    private boolean sortAllFiles = false;
+    private boolean copyInsteadOfMove = true;
     private boolean exitAfterSort = false;
     private Worker worker = new Worker();
     private Instant startTime;
@@ -159,6 +163,17 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
 
         JSeparator sep3 = new JSeparator(SwingConstants.HORIZONTAL);
 
+        sortAllFilesCheckBox = new JCheckBox("Sort all files");
+        sortAllFilesCheckBox.setToolTipText("");
+        sortAllFilesCheckBox.setFont(FONT);
+        sortAllFilesCheckBox.addItemListener(this);
+        copyInsteadOfMoveCheckBox = new JCheckBox("Copy instead of move");
+        copyInsteadOfMoveCheckBox.setToolTipText("");
+        copyInsteadOfMoveCheckBox.setFont(FONT);
+        copyInsteadOfMoveCheckBox.addItemListener(this);
+
+        JSeparator sep4 = new JSeparator(SwingConstants.HORIZONTAL);
+
         JLabel statusLabel = new JLabel("Status:");
         statusLabel.setFont(FONT);
 
@@ -212,6 +227,11 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
                                 )
                                 .addComponent(exitAfterSortCheckBox)
                                 .addComponent(sep3, 200, 275, 275)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(sortAllFilesCheckBox)
+                                        .addComponent(copyInsteadOfMoveCheckBox)
+                                )
+                                .addComponent(sep4, 200, 275, 275)
                                 .addComponent(statusLabel)
                                 .addComponent(showSortingDisabledReasonLabel)
                                 .addGroup(layout.createSequentialGroup()
@@ -290,7 +310,8 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
 
                 worker = new Worker(
                         LOGGER, sourceDir, destinationDir, sortImages, separateBrokenImages,
-                        moveAAEs, sortAAEs, moveVideos, sortVideos, daySort, OSCreateDateSort
+                        moveAAEs, sortAAEs, moveVideos, sortVideos, daySort, OSCreateDateSort,
+                        sortAllFiles, copyInsteadOfMove
                 );
                 worker.addPropertyChangeListener(this);
                 worker.execute();
@@ -338,6 +359,10 @@ public class Main extends JFrame implements ActionListener, ItemListener, Proper
             exitAfterSort = !(e.getStateChange() == ItemEvent.DESELECTED);
         } else if (e.getItemSelectable() == OSCreateDateSortCheckBox) {
             OSCreateDateSort = !(e.getStateChange() == ItemEvent.DESELECTED);
+        } else if (e.getItemSelectable() == sortAllFilesCheckBox) {
+            sortAllFiles = !(e.getStateChange() == ItemEvent.DESELECTED);
+        } else if (e.getItemSelectable() == copyInsteadOfMoveCheckBox) {
+            copyInsteadOfMove = !(e.getStateChange() == ItemEvent.DESELECTED);
         }
     }
 
